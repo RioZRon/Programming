@@ -270,3 +270,65 @@ public synchronized void reset() {
 所以由于mark和reset方法配合可以记录并回到我们标记的流的位置重新读流，很大一部分就可以解决我们的某些重复读的需要。 
 这种方式的优点很明显：不用缓存整个InputStream数据。对于ByteArrayInputStream甚至没有任何的内存开销。 
 当然这种方式也有缺点：就是需要通过干扰InputStream的读取细节，也相对比较复杂。
+
+
+** Reader应该是字符流
+当时用FileReader的时候有可能是文本编码的问题 
+#+BEGIN_SRC java
+InputStreamReader isr = new InputStreamReader(new FileInputStream("src/Calendar/Test.txt"),"UTF-8");
+#+END_SRC
+
+*** 原文<转>BufferedReader和FileReader读取txt文件乱码
+2013-08-23 18:41 2704人阅读 评论(0) 收藏 举报
+今天写代码一直乱码，最后发现读取流写错了，笔记笔记。
+读取txt文件乱码   
+BufferedReader read = new BufferedReader(new FileReader(new File(filename)));   
+  
+解决办法：   
+InputStreamReader isr = new InputStreamReader(new FileInputStream(file), "UTF-8");   
+BufferedReader read = new BufferedReader(isr);     
+因为InputStreamReader和BufferedReader 都继承自Reader,而BufferedReader 的构造器又是Reader.   
+Writer也是一样的处理  
+ 
+附一：API中InputStreamReader介绍
+public class InputStreamReader extends Reader
+InputStreamReader 是字节流通向字符流的桥梁：它使用指定的 charset 读取字节并将其解码为字符。它使用的字符集可以由名称指定或显式给定，否则可能接受平台默认的字符集。
+   每次调用 InputStreamReader 中的一个 read() 方法都会导致从基础输入流读取一个或多个字节。要启用从字节到字符的有效转换，可以提前从基础流读取更多的字节，使其超过满足当前读取操作所需的字节。
+为了达到最高效率，可要考虑在 BufferedReader 内包装 InputStreamReader。例如：  
+    BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+ 
+   public InputStreamReader(InputStream in,Charset cs)
+   创建使用给定字符集的 InputStreamReader。
+ 
+附二：使用java的输入，输出流技术将一个文本文件的内容按行读出，每读出一行就顺序添加行号，并写入到另一个文件中。
+public static void appendLineNumber(File from, File to){
+  BufferedReader in = null;
+  BufferedWriter out = null;
+  try {
+   in = new BufferedReader(new InputStreamReader(new FileInputStream(from),"UTF-8"));
+   StringBuffer s = new StringBuffer();
+   String t ;
+   int lineNumber = 1;
+   while((t=in.readLine())!=null){
+    s.append(lineNumber+"");
+    s.append(t);
+    s.append(System.getProperty("line.separator"));
+     //java可以通过System.getProperty获得系统变量的值 separator-行与行之间的分隔符
+     //具体见API中System.getProperty()
+    lineNumber++;
+   }
+   out = new BufferedWriter(new FileWriter(to));
+   out.write(s.toString());
+  } catch (FileNotFoundException e) {
+   e.printStackTrace();
+  } catch (IOException e) {
+   e.printStackTrace();
+  }finally{
+   try {
+    in.close();
+    out.close();
+   } catch (IOException e) {
+    e.printStackTrace();
+   }
+  }
+ }

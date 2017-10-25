@@ -11,10 +11,9 @@ import java.io.FileReader;
  */
 public class Fileread {
     public static void main(String[] args){
+        System.out.println(System.getProperties());
         try {
-            File readme = new File("src/Calendar/Readme.md");
-            System.out.print(readme.exists());
-            FileReader fileReader = new FileReader(readme);
+            FileReader fileReader = new FileReader("src/Calendar/Test.txt");
             char[] chs= new char [1000];
             int ch = fileReader.read(chs);
             while(ch != -1){

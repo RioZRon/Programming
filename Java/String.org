@@ -1,0 +1,7 @@
+构造器
+String(byte[] bytes, String charsetName)
+
+更改一个String的编码方式到UTF-8
+#+BEGIN_SRC java
+(new String(str.getBytes(),"UTF-8"))
+#+END_SRCxs
