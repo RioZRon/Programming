@@ -1,0 +1,48 @@
+* 整理inputStream
+inputStream 
+- AudioInputStream, ByteArrayInputStream, FileInputStream, FilterInputStream, InputStream, ObjectInputStream, PipedInputStream, SequenceInputStream, StringBufferInputStream
+Reader
+- BufferedReader, CharArrayReader, FilterReader, InputStreamReader, PipedReader, StringReader
+** <转>BufferedReader和FileReader读取txt文件乱码
+FileReader是inputSteamReader的子类
+因为File方式是输入流的一种方法 
+然后是用字符的方式读入
+但是只有inputStreamReader才有修改字符编码的能力 所以使
+#+BEGIN_SRC java
+InputStreamReader inputreader  = new InputStreamReader(new  FileInputStream("..."), "UTF-8");
+#+END_SRC
+读取txt文件乱码   
+#+BEGIN_SRC java
+BufferedReader read = new BufferedReader(new FileReader(new File(filename)));   
+#+END_SRC
+  
+解决办法：   
+#+BEGIN_SRC java
+InputStreamReader isr = new InputStreamReader(new FileInputStream(file), "UTF-8");   
+BufferedReader read = new BufferedReader(isr);     
+#+END_SRC
+因为InputStreamReader和BufferedReader 都继承自Reader,而BufferedReader 的构造器又是Reader.   
+Writer也是一样的处理  
+** BufferedReader的构造函数参数是Reader, 只有用其他类型的Reader才能转型成buffer功能的BufferedReader
+** 各个Reader构造函数:
+Reader需要不同的参数构造 
+CharArrayReader需要一个字符数组,InputStreamReader需要一个inputStream,StringReader需要传入一个String,PipedReader可无参,或调入PipedWrite
+FilterReader跟 BufferedReader一样需要其他Reader,
+
+* OutputStream
+** OutputStream
+   ~Direct Known Subclasses:~
+   - ByteArrayOutputStream, FileOutputStream, FilterOutputStream, ObjectOutputStream, OutputStream, PipedOutputStream
+** Class Writer
+   ~All Implemented Interfaces:~
+   Closeable, Flushable, Appendable, AutoCloseable
+   ~Direct Known Subclasses:~
+   BufferedWriter, CharArrayWriter, FilterWriter, OutputStreamWriter, PipedWriter, PrintWriter, StringWriter
+** PipedOutputStream & PipedInputStream
+   A piped output stream can be connected to a piped input stream to create a communications pipe. 
+   The piped output stream is the sending end of the pipe. Typically, data is written to a PipedOutputStream object by one thread and data is read from the connected PipedInputStream by some other thread.
+   Attempting to use both objects from a single thread is not recommended as it may deadlock the thread. The pipe is said to be broken if a thread that was reading data bytes from the connected piped input stream is no longer alive.
+
+** 基本与InputStream相似, Writer多了printWriter
+   PrintWriter比较特殊,参数可以有很多种,可以传入Writer,可以传入OutputStream,可以传入FileName/File(后面可以接上对应的字符集charset)
+与InputStreamReader有点类似,但是InputStreamReader只能传入InputStream(但是可以用FileInputStream代替)
