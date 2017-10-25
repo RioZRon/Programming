@@ -124,11 +124,149 @@ getAbsolutePath & getPath
 数据的移动
 ** 分类
 *** 按照传输单元
-- 字节流
-- 字符流
+- 字节流 XXXInpustStream,  XXXOutputStream
+- 字符流 XXXReader   XXXWriter
 *** 按照流的方向 
-- 输入流
-- 输出流
-e
+- 输入流  流入程序   XXXInputStream  XXXReader
+- 输出流  流出程序   XXXOutPutStream  XXXWriter
+*** 按照功能来分
+- 节点流  
+可以从或向一个特定的地方（节点）读写数据。如FileReader 
+#+BEGIN_EXAMPLE
+文  件  *FileInputStream FileOutputStrean FileReader FileWriter 文件进行处理的节点流 
+数  组  *ByteArrayInputStream  ByteArrayOutputStream  CharArrayReader  CharArrayWriter 
+对数组进行处理的节点流（对应的不再是文件，而是内存中的一个数组） 
+字符串  *无    无  StringReader StringWriter 对字符串进行处理的节点流 
+管  道  *PipedInputStream  PipedOutputStream  PipedReader  PipedWriter 对管道进行处
+理的节点流 
+#+END_EXAMPLE
+- 处理流
+是对一个已存在的流的连接和封装，通过所封装的流的功能调用实现数据读写。
+如BufferedReader。处理流的构造方法总是要带一个其他的流对象做参数。一个流对象经过
+其他流的多次包装，称为流的链接。 
+#+BEGIN_EXAMPLE
+缓冲流  *BufferedImputStrean BufferedOutputStream BufferedReader BufferedWriter ----需
+要父类作为参数构造，增加缓冲功能，避免频繁读写硬盘，可以初始化缓冲数据的大小，由
+于带了缓冲功能，所以就写数据的时候需要使用flush方法咯 
+转换流  *InputStreamReader  OutputStreamWriter-  要inputStream 或OutputStream作为
+参数，实现从字节流到字符流的转换 
+数据流  *DataInputStream DataOutputStream -提供将基础数据类型写入到文件中，或者
+读取出来
+#+END_EXAMPLE
+
+** 步骤
+1. 搭建管道
+2. 读写操作
+3. 关闭流(使用finally)
+** 使用mark&reset重复利用inputstream
+在这篇博客中我们已经简单的知道可以通过缓存InputStream来重复利用一个InputStream，但是这种方式的缺点也是明显的，就是要缓存一整个InputStream内存压力可能是比较大的。如果第一次读取InputStream是用来判断文件流类型，文件编码等用的，往往不需要所有的InputStream的数据，或许只需要前n个字节，这样一来，缓存一整个InputStream实际上也是一种浪费。 
+
+其实InputStream本身提供了三个接口： 
+第一个，InputStream是否支持mark，默认不支持。 
+Java代码  收藏代码
+public boolean markSupported() {  
+   return false;  
+}  
+
+第二个，mark接口。该接口在InputStream中默认实现不做任何事情。 
+Java代码  收藏代码
+public synchronized void mark(int readlimit) {}  
+
+第三个，reset接口。该接口在InputStream中实现，调用就会抛异常。 
+Java代码  收藏代码
+public synchronized void reset() throws IOException {  
+   throw new IOException("mark/reset not supported");  
+}  
+
+从三个接口定义中可以看出，首先InputStream默认是不支持mark的，子类需要支持mark必须重写这三个方法。 
+第一个接口很简单，就是标明该InputStream是否支持mark。 
+mark接口的官方文档解释： 
+“在此输入流中标记当前的位置。对 reset 方法的后续调用会在最后标记的位置重新定位此流，以便后续读取重新读取相同的字节。 
+readlimit 参数告知此输入流在标记位置失效之前允许读取许多字节。 
+
+mark 的常规协定是：如果方法 markSupported 返回 true，则输入流总会在调用 mark 之后记住所有读取的字节，并且无论何时调用方法 reset ，都会准备再次提供那些相同的字节。但是，如果在调用 reset 之前可以从流中读取多于 readlimit 的字节，则根本不需要该流记住任何数据。” 
+
+reset接口的官方文档解释： 
+
+将此流重新定位到对此输入流最后调用 mark 方法时的位置。 
+reset 的常规协定是： 
 
 
+如果方法 markSupported 返回 true，则： 
+如果创建流以来未调用方法 mark，或最后调用 mark 以来从该流读取的字节数大于最后调用 mark 时的参数，则可能抛出 IOException。 
+如果未抛出这样的 IOException，则将该流重新设置为这种状态：最近调用 mark 以来（或如果未调用 mark，则从文件开始以来）读取的所有字节将重新提供给 read 方法的后续调用方，后接可能是调用 reset 时的下一输入数据的所有字节。 
+如果方法 markSupported 返回 false，则： 
+对 reset 的调用可能抛出 IOException。 
+如果未抛出 IOException，则将该流重新设置为一种固定状态，该状态取决于输入流的特定类型和其创建方式的固定状态。提供给 read 方法的后续调用方的字节取决于特定类型的输入流。 
+
+
+
+简而言之就是： 
+调用mark方法会记下当前调用mark方法的时刻，InputStream被读到的位置。 
+调用reset方法就会回到该位置。 
+举个简单的例子： 
+Java代码  收藏代码
+String content = "BoyceZhang!";  
+InputStream inputStream = new ByteArrayInputStream(content.getBytes());  
+  
+// 判断该输入流是否支持mark操作  
+if (!inputStream.markSupported()) {  
+    System.out.println("mark/reset not supported!");  
+}  
+int ch;    
+boolean marked = false;    
+while ((ch = inputStream.read()) != -1) {  
+      
+    //读取一个字符输出一个字符    
+    System.out.print((char)ch);    
+    //读到 'e'的时候标记一下  
+     if (((char)ch == 'e')& !marked) {    
+        inputStream.mark(content.length());  //先不要理会mark的参数  
+         marked = true;    
+     }    
+                  
+     //读到'!'的时候重新回到标记位置开始读  
+      if ((char)ch == '!' && marked) {    
+          inputStream.reset();    
+          marked = false;  
+      }    
+}  
+  
+//程序最终输出：BoyceZhang!Zhang!  
+
+看了这个例子之后对mark和reset接口有了很直观的认识。 
+但是mark接口的参数readlimit究竟是干嘛的呢？ 
+我们知道InputStream是不支持mark的。要想支持mark子类必须重写这三个方法，我想说的是不同的实现子类，mark的参数readlimit作用不尽相同。 
+常用的FileInputStream不支持mark。 
+1. 对于BufferedInputStream，readlimit表示：InputStream调用mark方法的时刻起，在读取readlimit个字节之前，标记的该位置是有效的。如果读取的字节数大于readlimit，可能标记的位置会失效。 
+
+在BufferedInputStream的read方法源码中有这么一段： 
+Java代码  收藏代码
+} else if (buffer.length >= marklimit) {  
+     markpos = -1;   /* buffer got too big, invalidate mark */  
+     pos = 0;        /* drop buffer contents */  
+     } else {            /* grow buffer */  
+
+为什么是可能会失效呢？ 
+因为BufferedInputStream读取不是一个字节一个字节读取的，是一个字节数组一个字节数组读取的。 
+例如，readlimit=35，第一次比较的时候buffer.length=0（没开始读）<readlimit 
+然后buffer数组一次读取48个字节。这时的read方法只会简单的挨个返回buffer数组中的字节，不会做这次比较。直到读到buffer数组最后一个字节（第48个）后，才重新再次比较。这时如果我们读到buffer中第47个字节就reset。mark仍然是有效的。虽然47>35。 
+
+2. 对于InputStream的另外一个实现类：ByteArrayInputStream，我们发现readlimit参数根本就没有用，调用mark方法的时候写多少都无所谓。 
+Java代码  收藏代码
+public void mark(int readAheadLimit) {  
+   mark = pos;  
+}  
+  
+public synchronized void reset() {  
+   pos = mark;  
+}  
+
+
+因为对于ByteArrayInputStream来说，都是通过字节数组创建的，内部本身就保存了整个字节数组，mark只是标记一下数组下标位置，根本不用担心mark会创建太大的buffer字节数组缓存。 
+
+3. 其他的InputStream子类没有去总结。原理都是一样的。 
+
+所以由于mark和reset方法配合可以记录并回到我们标记的流的位置重新读流，很大一部分就可以解决我们的某些重复读的需要。 
+这种方式的优点很明显：不用缓存整个InputStream数据。对于ByteArrayInputStream甚至没有任何的内存开销。 
+当然这种方式也有缺点：就是需要通过干扰InputStream的读取细节，也相对比较复杂。
