@@ -1,0 +1,75 @@
+
+* 桥方法
+
+Java中的桥方法可以解决返回类型协变的问题（场景一和场景二）和由泛型擦除所引起的看似“继承错误”的问题（场景三）。
+** 基本的返回类型协变问题 
+#+BEGIN_SRC java
+//父类
+class Father{
+    public Number test1(){
+        return null;
+    }
+}
+//子类
+class Son extends Father{
+    public Integer test1(){
+        return null;
+    }
+
+    /**
+     *  // Method descriptor #16 ()Ljava/lang/Number;
+        // Stack: 1, Locals: 1
+    public bridge synthetic java.lang.Number test1();
+        0  aload_0 [this]
+        1  invokevirtual com.cjs.gohead.generic.classorinterface.Son.test1() : java.lang.Integer [17]
+        4  areturn
+     */
+}
+#+END_SRC
+子类中注释的那段即是Java编译器自动生成的桥方法，它由编译器自动生成，存在于class文件，通过那段字节码可以很清楚的看出桥方法的生成。
+
+这就是书中P537说的,覆盖另一个方法是可以指定一个更严格的返回类型
+
+
+同时呢返回类型协变也包括泛型擦除（涉及到泛型的实现原理）所引起的一个问题：当一个“子泛型类”实现/继承自一个“父泛型类”的时候，“父泛型类”的类型信息会被擦除为限定类型，这个时候“子泛型类”里面会生成一个桥方法（场景二）。
+
+** 桥方法(泛型 )
+对于擦除后的方法,可能无法覆盖父类的方法,编译器会自动生成一个桥方法
+#+BEGIN_SRC java
+//对于类SonPair
+class SonPair extends Pair<String>{
+  public void setFirst(Stirng fir){...}
+}
+//.....编译器擦除后生成的是
+class SonPair extends Pair{
+  public void setFirst(String fir){...}
+//但在父类中,需要覆盖的其实是
+class Pair{
+  public void setFirst(Object fir){..}
+//所以 编译器回自动在SonPair中生成一个桥方法(bridge method)
+public void setFirst(Object fir){
+  setFirst((String) fir)
+}
+#+END_SRC
+
+在这里调用子类方法来覆盖父类的方法
+
+** 场景三
+但是如果存在个getFirst()方法 返回值是String, 在父类中,经过擦除
+public Objcet getFirst(){...}
+
+形成相应的桥方法
+public Object getFirst(){...}
+但子类还存在一种方法
+public String getFirst()
+**** 解释:
+      ① 方法签名 确实只有方法名+参数列表 。这毫无疑问！
+      ② 我们绝对不能编写出方法签名一样的多个方法 。如果这样写程序，编译器是不会放过的。这也毫无疑问！
+      ③ 最重要的一点是：JVM会用参数类型和返回类型来确定一个方法。 一旦编译器通过某种方式自己编译出方法签名一样的两个方法(只能编译器自己来创造这种奇迹，我们程序员却不能人为的编写这种代码)。JVM还是能够分清楚这些方法的，前提是需要返回类型不一样。
+
+
+
+总结：泛型代码与JVM 
+    ① 虚拟机中没有泛型，只有普通类和方法。
+    ② 在编译阶段，所有泛型类的类型参数都会被Object或者它们的限定边界来替换。(类型擦除)
+    ③ 在继承泛型类型的时候，桥方法的合成是为了避免类型变量擦除所带来的多态灾难。

@@ -1,0 +1,21 @@
+* Date
+#+BEGIN_SRC java
+java.util.Date
+public class Date
+extends Object
+implements Serializable, Cloneable, Comparable<Date>
+#+END_SRC
+ represents a specific instant in time, with millisecond precision.
+1. allowed the interpretation of dates as year, month, day, hour, minute, and second values.
+2. It also allowed the formatting and parsing of date strings. 
+but
+was  not amenable to internationalization
+
+对于Date构造器只推荐使用默认构造器
+Date()
+Allocates a Date object and initializes it so that it represents the time at which it was allocated, measured to the nearest millisecond.
+
+** 与instant的转化
+- from(Instant instant)
+- toInstant(Date date)
+

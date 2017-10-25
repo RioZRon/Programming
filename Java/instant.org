@@ -1,0 +1,37 @@
+Instant 类在java 8 新引入的时间日期API中表示时间线中的一个特定时刻。 
+Instant类 定义为从起点开始的的偏移量，起点是格林威治时间（GMT）1970-01-01:00:00（实际上Instant 取代原有的 Date 类） 
+时间从起点开始向前移动，每天为86,400秒。
+** 实例化 
+你可以使用Instant 类的工厂方法创建 Instant 实例。例如，要创建一个表示当前时刻的 Instant 实例，调用 Instant.now() ,像这样：
+#+BEGIN_SRC java
+Instant now = Instant.now();
+#+END_SRC
+也存在其他方法来创建一个Instant 实例，请查看Java doc 获取更多信息。
+#+BEGIN_SRC java
+from(TemporalAccessor)
+//Obtains an instance of Instant from a temporal object.
+...
+#+END_SRC
+
+** 从Instant 实例中获取时间
+Instant 对象中包含两个内部属性用于表示当前的时间：
+自起始点开始经过的秒(1970-01-01:00:00)
+getEpochSecond
+纳秒
+getNano
+
+** Instant 计算
+Instant 类包含几个方法可以计算生成另一个Instant 实例。
+
+plusSeconds()( 使用 joda time 库， Instant 只有 plus 方法，增加1秒就是增加1000毫秒)
+plusMillis()
+plusNanos()
+minusSeconds()
+minusMillis()
+minusNanos()
+#+BEGIN_SRC java
+Instant now = Instant.now();
+
+Instant later = now.plusSeconds(3); 
+Instant earlier = now.minusSeconds(3);
+#+END_SRC

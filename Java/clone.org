@@ -1,0 +1,119 @@
+* Java的clone()方法
+** clone方法将对象复制了一份并返回给调用者。一般而言，clone（）方法满足：
+①对任何的对象x，都有x.clone() !=x//克隆对象与原对象不是同一个对象
+②对任何的对象x，都有x.clone().getClass()= =x.getClass()//克隆对象与原对象的类型一样
+③如果对象x的equals()方法定义恰当，那么x.clone().equals(x)应该成立。
+* 克隆:
+** 浅表克隆: 引用数据类型的量不会备份(例子中的address没有拷贝)
+#+BEGIN_SRC java
+package InnerClass;
+
+/**
+ * Created by riosysm on 2017/10/19.
+ */
+public class cloneTest {
+    public static void main(String[] args) throws CloneNotSupportedException{
+        Address address = new Address("青岛", "嘉陵江");
+        Person rio = new Person(21, "Rio",address);
+        Person me = (Person)rio.clone();  //开的新内存,指向的不是同一个
+        address.setCity("重庆");
+        address.setStreet("党校");
+        rio.setHome(address);
+        System.out.println(rio.getHome().getCity());
+        System.out.println(me.getHome().getCity());
+    }
+
+}
+
+class Person implements Cloneable{
+    private  int age;
+    private String name;
+    private Address home;
+    public Person(){
+        super();
+    }
+
+    public Person(int age, String name, Address home){
+        this.age= age;
+        this.name = name;
+        this.home = home;
+    }
+
+    public void setHome(Address home) {
+        this.home = home;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Address getHome() {
+        return home;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Person per = null;
+        per = (Person)super.clone();  //产生了一个Person的副本
+        return per;
+    }
+}
+
+class Address{
+    private String city;
+    private String street;
+    public Address(String city, String street){
+        this.city = city;
+        this.street = street;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public String getStreet() {
+        return street;
+    }
+}
+
+#+END_SRC
+** 深表克隆: 需要所有都完成cloneable
+   换言之，深复制把要复制的对象所引用的对象都复制了一遍。
+#+BEGIN_SRC java
+  @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Person per = null;
+        per = (Person)super.clone();  //产生了一个Person的副本
+        this.home = (Address)this.home.clone();
+        return per;
+    }
+
+
+@Override
+    protected Object clone() throws CloneNotSupportedException {
+        Address address = null;
+        address = (Address)address.clone();
+        return address;
+    }
+#+END_SRC
+

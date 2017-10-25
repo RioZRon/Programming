@@ -1,0 +1,23 @@
+* Java高级
+** 工具类:
+*** Object
+**** toString() 返回对象的字符串表示; 
+***** 打印对象时自动调用
+     #+BEGIN_SRC java
+ System.out.println(a);
+ System.out.println(a.toString());
+ #+END_SRC
+**** equals(Obj) 判断引用数据类型的
+一般都是判断两个变脸的引用是否相等,但是对于String, 包装类, Date, File这些重写过equals的类除外(判断对象内容是否相等)
+**** hashCode() 重写equals就要重写 hashCode算法
+一般使用31
+但是这个数可以通过位移的方式来处理乘法，获得一些性能上的优化，虚拟机会自动做这些优化。
+#+BEGIN_EXAMPLE
+The value 31 was chosen because it is an odd prime. If it were even and the multiplication overflowed, information would be lost, as multiplication by 2 is equivalent to shifting. The advantage of using a prime is less clear, but it is traditional. A nice property of 31 is that the multiplication can be replaced by a shift and a subtraction for better performance: 31 * i == (i << 5) - i. Modern VMs do this sort of optimization automatically.
+#+END_EXAMPLE
+**** clone() 创建并返回一个此对象的副本
+     因为一般都是super.clone(),所以要向下转换
+*** String 
+**** 
+** 命令行参数
+java test .... 后面都是参数

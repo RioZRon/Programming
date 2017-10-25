@@ -1,0 +1,65 @@
+#+BEGIN_SRC java
+@FunctionalInterface
+public interface BiFunction<T,U,R>
+#+END_SRC 
+
+TUR分别是两个前两个参数的类型以及return的类型
+
+
+#+BEGIN_SRC java
+BiFunctionExample1.java
+
+package com.boraji.tutorial.lambda;
+
+import java.util.function.BiFunction;
+
+/**
+ * @author imssbora
+ */
+public class BiFunctionExample1 {
+	public static void main(String[] args) {
+		BiFunction<String, String, String> function1 = (s1, s2) -> {
+			String s3 = s1 + s2;
+			return s3;
+		};
+		System.out.println(function1.apply("BORAJI", ".COM"));
+
+		BiFunction<Integer, Integer, Integer> function2 = (a, b) -> a + b;
+		System.out.println(function2.apply(100, 200));
+	}
+}
+
+#+END_SRC
+
+Output
+
+BORAJI.COM
+300
+
+#+BEGIN_SRC java
+package com.boraji.tutorial.lambda;
+
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
+/**
+ * @author imssbora
+ */
+public class BiFunctionExample2 {
+	public static void main(String[] args) {
+
+		BiFunction<Integer, Integer, Integer> function1 = (a, b) -> a + b;
+		Function<Integer, Integer> function2 = (n) -> n*n;
+		
+		//Using andThen()
+		System.out.println(function1.andThen(function2).apply(5, 3));
+		System.out.println(function1.andThen(function2).apply(12, 2));
+	}
+}
+
+
+#+END_SRC
+Output
+
+64
+196

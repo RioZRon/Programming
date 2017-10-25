@@ -1,0 +1,8 @@
+public interface Enumeration<E>
+An object that implements the Enumeration interface generates a series of elements, one at a time. Successive calls to the nextElement method return successive elements of the series.
+** Methods
+*** boolean	hasMoreElements()
+Tests if this enumeration contains more elements.
+*** E	nextElement()
+Returns the next element of this enumeration if this enumeration object has at least one more element to provide.
+

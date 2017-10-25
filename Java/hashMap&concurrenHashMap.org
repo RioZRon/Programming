@@ -1,0 +1,15 @@
+** currenHashMap是jkd1.5引入的，其特点是：效率比Hashtable高，并发性比HashMap好。结合了两者的特点。
+
+        ConcurrentHashMap是一个线程安全的Hash Table，它的主要功能是提供了一组和HashTable功能相同但是线程安全的方法。ConcurrentHashMap可以做到读取数据不加锁，并且其内部的结构可以让其在进行写操作的时候能够将锁的粒度保持地尽量地小，不用对整个ConcurrentHashMap加锁。
+
+        ConcurrentHashMap为了提高本身的并发能力，在内部采用了一个叫做Segment的结构，一个Segment其实就是一个类Hash Table的结构，Segment内部维护了一个链表数组，我们用下面这一幅图来看下ConcurrentHashMap的内部结构：
+
+
+
+       ConcurrentHashMap定位一个元素的过程需要进行两次Hash操作，第一次Hash定位到Segment，第二次Hash定位到元素所在的链表的头部，因此，这一种结构的带来的副作用是Hash的过程要比普通的HashMap要长，但是带来的好处是写操作的时候可以只对元素所在的Segment进行加锁即可，不会影响到其他的Segment，这样，在最理想的情况下，ConcurrentHashMap可以最高同时支持Segment数量大小的写操作（刚好这些写操作都非常平均地分布在所有的Segment上），所以，通过这一种结构，ConcurrentHashMap的并发能力可以大大的提高。
+
+        HashMap中未进行同步考虑，而Hashtable则使用了synchronized，带来的直接影响就是可选择，我们可以在单线程时使用HashMap提高效率，而多线程时用Hashtable来保证安全。通过分析Hashtable就知道，synchronized是针对整张Hash表的，即每次锁住整张表让线程独占，安全的背后是巨大的浪费。
+
+它使用了多个锁来控制对hash表的不同部分进行的修改。 ConcurrentHashMap将hash表分为16段（默认值），诸如get,put,remove等常用操作只锁当前需要用到的段。试想，原来 只能一个线程进入，现在却能同时16个写线程进入（写线程才需要锁定，而读线程几乎不受限制，之后会提到），并发性的提升是显而易见的。
+
+它使用了多个锁来控制对hash表的不同部分进行的修改。 ConcurrentHashMap将hash表分为16段（默认值），诸如get,put,remove等常用操作只锁当前需要用到的段。试想，原来 只能一个线程进入，现在却能同时16个写线程进入（写线程才需要锁定，而读线程几乎不受限制，之后会提到），并发性的提升是显而易见的。

@@ -1,0 +1,50 @@
+* Map 字典
+键值对
+A map cannot contain duplicate keys; each key can map to at most one value.
+** Views
+allow a map's contents to be viewd as 
+*** a set of keys               keySet()   返回一个(key类型)的set
+*** collection of values        values()  
+*** set of key-value mappings   entrySet() 返回一个(Map.Entry<>)的Set
+** constructors
+a void (no arguments) constructor which creates an empty map, and a constructor with a single argument of type Map, which creates a new map with the same key-value mappings as its argument. In effect, *the latter constructor allows the user to copy any map*, producing an equivalent map of the desired class. There is no way to enforce this recommendation (as interfaces cannot contain constructors) but all of the general-purpose map implementations in the JDK comply.
+eg,. HashMap() & HashMap(Map)
+
+** compute()
+通常情况下，我们从map中获取一个值，对它进行计算，然后再将它存放到map中。如果有并发存在，这个过程很复杂并且容易出错。Java8中，我们可以给新的compute()，computeIfAbsent()或computeIfPresent()方法传递一个BiFunction，，并由Map实现来处理替换值的语义。
+   
+** merge(K key, V value, BiFunction<? super V,? super V,? extends V> remappingFunction)
+V 是自己传入的第二个参数 V2 用来做运算`=-#+BEGIN_SRC java
+HashMap<String, Integer> test = new HashMap<>();
+test.compute("E",(k,v) ->(v == null)? 42:41+v );
+test.computeIfAbsent("G", k -> 42);
+test.computeIfPresent("G", (k,d) -> d = (int)'G');
+#+END_SRC
+
+#+BEGIN_SRC java
+public class salaryMap {
+    public static  void main(String[] args){
+        HashMap<String, Integer> salaryMap = new HashMap<>();
+        salaryMap.put("张三", 800);
+        salaryMap.put("李四", 1500);
+        salaryMap.put("王五", 3000);
+        System.out.println(salaryMap);
+
+        BiFunction<Integer,Integer,Integer> minuSelf = (V1, V2) -> V2 - V1;
+        salaryMap.merge("王五", 4000, minuSelf);
+        System.out.println(salaryMap);
+    }
+}
+#+END_SRC
+** default V merge(K key, V value, BiFunction<? super V,? super V,? extends V> remappingFunction)
+V oldValue = map.get(key);
+V newValue = (oldValue == null) ? value :
+              remappingFunction.apply(oldValue, value);
+ if (newValue == null)
+     map.remove(key);
+ else
+     map.put(key, newValue);
+
+map.merge(key,msg,String::concat)  
+= map.put(key,value.concat(msg))
+

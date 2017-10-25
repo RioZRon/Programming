@@ -1,0 +1,98 @@
+* 泛型
+泛型类可以看做普通类的工厂
+** 泛型方法
+泛型方法可以定义在普通类中也可以定义在泛型类中
+当调用泛型方法的时候 在方法名前面的括号中放入具体的数据类型
+#+BEGIN_SRC java
+class ArrayAlg{
+   public static <T> T getMiddle(T...a)
+   {
+     return a[a.length/2];
+   }    
+}
+
+String middle = ArraAlg.<String>getMiddle("John", "Q", "public");
+#+END_SRC
+在大多数情况下方法地哦用中可以省略<SString>类型参数.编译器有足够的信息能够推断,但是比如一些晦涩的参数比如 3.14,172,0 是不容易判断的
+
+ 创建泛型对象的时候，一定要指出类型变量T的具体类型。争取让编译器检查出错误，而不是留给JVM运行的时候抛出异常
+** 桥方法
+对于擦除后的方法,可能无法覆盖父类的方法,编译器会自动生成一个桥方法
+#+BEGIN_SRC java
+//对于类SonPair
+class SonPair extends Pair<String>{
+  public void setFirst(Stirng fir){...}
+}
+//.....编译器擦除后生成的是
+class SonPair extends Pair{
+  public void setFirst(String fir){...}
+//但在父类中,需要覆盖的其实是
+class Pair{
+  public void setFirst(Object fir){..}
+//所以 编译器回自动在SonPair中生成一个桥方法(bridge method)
+public void setFirst(Object fir){
+  setFirst((String) fir)
+}
+#+END_SRC
+
+在这里调用子类方法来覆盖父类的方法
+但是如果存在个getFirst()方法 返回值是String, 在父类中,经过擦除
+public Objcet getFirst(){...}
+
+形成相应的桥方法
+public Object getFirst(){...}
+但子类还存在一种方法
+public String getFirst()
+**** 解释:
+      ① 方法签名 确实只有方法名+参数列表 。这毫无疑问！
+      ② 我们绝对不能编写出方法签名一样的多个方法 。如果这样写程序，编译器是不会放过的。这也毫无疑问！
+      ③ 最重要的一点是：JVM会用参数类型和返回类型来确定一个方法。 一旦编译器通过某种方式自己编译出方法签名一样的两个方法(只能编译器自己来创造这种奇迹，我们程序员却不能人为的编写这种代码)。JVM还是能够分清楚这些方法的，前提是需要返回类型不一样。
+
+** Tip
+*** (类型变量的限定)[
+有些时候要对泛型所表示的数据类型加衣约束,那比如要求出最大最小值,传入的元素至少是可比的 那就可以通过对类型变量设置限定
+#+BEGIN_SRC java
+pubilc static <T extends Comparable> T min(T[] a)...
+#+END_SRC
+
+注意 这里使用关键字 extends 因为T应该是被绑定类型的子类型,无论是类还是接口 extends更能表达子类型的意义(使用通配符& 实现多个限定)
+
+ 如果泛型类型的类型变量没有限定(<T>) ，那么我们就用Object作为原始类型；
+ 如果有限定(<T extends XClass>)，我们就XClass作为原始类型；
+ 如果有多个限定(<T extends XClass1&XClass2>)，我们就用第一个边界的类型变量XClass1类作为原始类型； 
+    注意:为了提高效率,应该将标签接口(没有方法的接口) 放在边界列表  也就是说,如果XClass1是标签接口 把XClass2作为原始类型
+
+
+
+
+*** 泛型使得类的集成变得复杂
+#+BEGIN_SRC java
+public class replaceAll {
+    public static void main(String[] args)
+    {
+        ArrayList<String> str = new ArrayList<String>();
+        str.add("haha");
+        
+        //注意这里 我们不能直接使用 List<Objct> obj = str;
+        List<Object> obj = new ArrayList(str);
+        List<String> str2 = str;
+        List<? extends Object> obj2 = str;
+        System.out.println(obj2.get(0).getClass().getName());
+        System.out.println(obj2.getClass().getName());
+
+
+
+        //泛型里面不好使 我用一个类型集合看能不能转换
+        String[] arrstr = {"a", "b", "c"};
+        Object[] arrobj = arrstr;
+        System.out.println(arrobj);
+        //自动转换为String集合  返回的class也是属于String
+
+    }
+}
+
+#+END_SRC
+** 总结：泛型代码与JVM 
+    ① 虚拟机中没有泛型，只有普通类和方法。
+    ② 在编译阶段，所有泛型类的类型参数都会被Object或者它们的限定边界来替换。(类型擦除)
+    ③ 在继承泛型类型的时候，桥方法的合成是为了避免类型变量擦除所带来的多态灾难。

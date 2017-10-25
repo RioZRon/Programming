@@ -1,0 +1,35 @@
+** List集合 extends Collection
+*An ordered collection*
+lists typically allow duplicate elements. 
+*** method
+    - add/addAll
+    - clear
+    - contains/containsAll
+    - equals/hashCode
+    - get
+    - indexOf/lastIndexOf
+    - isEmpty
+    - iterator/listIterator //注意listIterator还可以传入参数index(表示从这个索引刚开始)
+    - remove/removeAll //两个方式 删除第一次出现的内容/或者加入参数, removeAll跟addAll一样 传入一个集合
+    - set    //两个参数 int E
+    - size
+    - sort   //传入参数是一个Comprator对象
+    - spliterator   //传出一个Spliterator
+    - subList
+    - toArray
+
+
+注意: ListIterator里的preview并不是只有在next之后才能使用
+泛型 可以直接省略数据类型 自行判断 但如果是自己创建的类 需要<Student>
+#+BEGIN_SRC java
+ ListIterator listiter = arrayList.listIterator(10);
+       while (listiter.hasPrevious())
+            System.out.print(listiter.previous());
+#+END_SRC
+
+
+
+
+
+扩容(集合)
+ArrayList  * 1.5 + 1
