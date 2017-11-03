@@ -1,0 +1,4 @@
+Action 类别 > Action 名称 > Action 编辑」
+
+Macro 宏文件，我们可以将它理解为独立的 Workflow 工作流程，例如，打开 Finder 就是一个工作流程，只是概念上它仅有一个步骤罢了。
+Action 行为，例如，执行一段 AppleScript 脚本语言，或是点击一个 Button 按钮，都属于「行为」的一种。Macro 与 Action 的关系为父与子，Macro 为父，由其子 Action 组成，并最终以 Macro 的命名区分，通过用户拟定的 Trigger 触发，并按照有序的 Script 脚本语法特性，执行所有的 Action 行为。

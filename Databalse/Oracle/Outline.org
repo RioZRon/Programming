@@ -1,0 +1,174 @@
+Oracle
+劳 伦 斯・埃 里 森（ Larry Ellison）
+
+** 数据库应用基本分类
+数据库开发:能用SQL完成数据库的增删改查:能用PL/SQL完成及各类逻辑的实现
+数据库管理:能完成数据库的安装/部署/调试/备份/数据迁移等系统相关的工作,能分配用户/控制权限/表空间哈分等管理的相关工作
+数据库优化:利用各类工具盒手段发现并解决数据库存在的性能问题,从而提升数据库运行效率
+数据库设计:深刻理解业务需求和数据库原理,合理高效玩车功能数据库模型的建设,设计出各类表及索引等数据库对象,让后续应用开发高效稳定
+
+** 体系结构
+....
+
+
+
+上课学习
+数值函数   (参数可以是列,也可以是一个数字)
+1. round() 四舍五入 两个参数 前一个是值,后一个是小数点后几位,如果为负数就是从个十百千...
+SELECT ROUND(12.423 , 2) , ROUND(12.643, -1) from dual;
+2. trunc() 截断 跟round类似
+3. mod()  求余数  两个参数 
+日期类型的数字运算
+1. SYSDATE 
+2. MONTH_BETWEEN(... , ...)  前减去后
+3. add_months   在指定日期添加月数(如果是1月30  add后判断闰年 一般为2.28
+4. next_day     返回某一个日期的下一个指定日期 
+SELECT SYSDATE, NEXT_DAY(SYSDATE,'MON') FROM EMP;
+5. LAST_DAY 返回指定日期当月的最后一天
+6.ROUND() 默认是以天进行四舍五入
+SELECT HIREDATE, ROUND(HIREDATE,'MM') from emp;    就是比较DD是否能进位
+trunc
+7. extract 截取
+SELECT extract(DAY from SYSDATE) from dual;
+
+
+转换函数
+数据类型转换:
+*** 隐式转换
+字符型的值隐式转换为数值型
+字符型转换为日期型se
+连接符操作 把任何非字符型转换为字符型
+*** 显示转换
+~to_char()~
+SELECT TO_CHAR(sal,'L0,000.00') from emp;
+L表示本地符号 $表示美元 9表示一个数字 9表示一个数字或者一个前导符号
+~to_date()~
+fmt格式
+Year:      
+        yy two digits 两位年                显示值:07 
+        yyy three digits 三位年                显示值:007 
+        yyyy four digits 四位年                显示值:2007 
+        RR ...
+Month:      
+        mm    number     两位月              显示值:11 
+        mon    abbreviated 字符集表示          显示值:11月,若是英文版,显示nov     
+        month spelled out 字符集表示          显示值:11月,若是英文版,显示november 
+Day:      
+        dd    number         当月第几天        显示值:02 
+        ddd    number         当年第几天        显示值:02 
+        dy    abbreviated 当周第几天简写    显示值:星期五,若是英文版,显示fri 
+        day    spelled out   当周第几天全写    显示值:星期五,若是英文版,显示friday        
+        ddspth spelled out, ordinal twelfth 
+Hour: 
+              hh    two digits 12小时进制            显示值:01 
+              hh24 two digits 24小时进制            显示值:13 
+Minute: 
+              mi    twmo digits 60进制                显示值:45 
+Second: 
+              ss    two digits 60进制                显示值:25 
+其它 
+              Q     digit         季度                  显示值:4 
+              WW    digit         当年第几周            显示值:44 
+              W    digit          当月第几周            显示值:1 
+24小时格式下时间范围为： 0:00:00 - 23:59:59....      
+12小时格式下时间范围为： 1:00:00 - 12:59:59 ....
+只有字符串才能转换日期
+SELECT * FROM emp WHERE hiredate > TO_DATE('1981-1-1','yyyy-mm-dd');
+
+
+
+RR功能  可以理解 比如我给出95 最好返回另一个世纪最近的一年
+   比如95 现在21世纪, 指向的不是2095 而应该是上个世纪的1995
+   比如现在是1995 输入12 指向的不是1912 而应该是2012
+
+| 当前年份  | 指定年份                 |                    |
+|----------+-------------------------+--------------------|
+|          | 0-49                    | 50-99              |
+|     0-49 | 返回日期是当前实际的日期   | 返回上个世纪的日期 |
+|    50-99 | 返回下个世纪的日期        | 返回当前世纪的日期 |
+
+3.to_number()
+
+
+
+nvl函数
+nvl(ccomm+12, 0)如果前者为null 返回0
+nvl2(ex1,  ex2,  ex3) 判断1是否为空 是返回ex3 不是 返回ex2
+
+NULLIF(ex1, ex2) 如果相同返回null 如果相同返回ex1
+
+coalesce(ex1, ex2....) 返回第一个不为空的表达式
+
+case ...
+    when ... then ...
+    when ... then ...
+    ...
+    else ...
+    end
+decode  字段|表达式,条件1,结果1,条件2,结果,条件3,结果3, else的结果)
+
+函数嵌套 从里到外
+
+
+* 多表连接查询
+比如求在十号部门工作的员工的姓名和薪水, 工作地点
+#+BEGIN_SRC sql
+select * |[destict 列名[as] A别名...]
+from 表名 [别名], 表名[别名].
+[where 子句]
+[orderby 子句]ASC：升序（默认），DESC
+#+END_SRC
+
+oracle 语法 适用于Oracle搭建.org
+Outline.org
+学习Oracle数据库
+大部分的关系型数据库 
+ANSI sql 1999标准语法  所有的关系型数据库
+
+集合运算
+
+笛卡尔积/等值连接/不等值连接/外联结/自联结
+
+笛卡尔积[[https://gss2.bdstatic.com/-fo3dSag_xI4khGkpoWK1HF6hhy/baike/c0%3Dbaike92%2C5%2C5%2C92%2C30/sign=1baf71d673f08202399f996d2a929088/2934349b033b5bb57f0eb50b36d3d539b700bc6e.jpg][pg
+]]会产生很多冗余的数据
+遇到公共列需要明确属于那一张表
+给表起别名 直接在FROM后面 的表名后面直接加 但是所有的操作都只能使用别名
+  别名长度不能超过30, from子句定义, 只在当前语句有效
+  #+BEGIN_SRC sql
+SeLECT e. ename,e.sal,d.deptno,d.ename FROM emp e, dept d  WHERE d.deptno = 10
+  #+END_SRC
+等值连接(内连接,简单连接)
+公共的属性会叠合
+#+BEGIN_SRC sql
+SeLECT e. ename,e.sal,d.deptno,d.ename FROM emp e, dept d where e.deptno = d.deptno;
+#+END_SRC
+等值连接会抛掉空值
+
+不等值连接  between..and...  like  in 
+使用除了等号之外连接的句子
+#+BEGIN_SRC sql
+select e.ename, e.empno, e.sal, s.grade from emp e, selgrad s where e.sal between s.losal and s.hisal;
+#+END_SRC
+
+外连接, 为了找到所有的记录,包括没有匹配的记录
++ :用于数据缺失表的一端
+左外连接:以左表为基准,左表数据全部显示 加号在右边
+#+BEGIN_SRC sql
+SeLECT e. ename,e.sal,d.deptno,d.ename FROM emp e, dept d where e.deptno = d.deptno(+);
+#+END_SRC
+需要的是所有的员工 所以基准应该是emp
+右外连接:油表的数据全部显示
+
+
+自连接
+找到所有的经理
+自己跟自己做一个多表连接
+自己的经理跟下一个表的eno匹配 , 只要是一个人的经理,那么必然在员工表里能找到
+e.mgr = m.eno(e,m都是表emp)
+
+
+
+Q: 每次连接会生成一个空间也就是说生成一个新表么,还是做SELECT的时候只是一个个匹配输出的一个表,实际上还是只有两个表
+A: 实际上还是两个原表的计算
+
+

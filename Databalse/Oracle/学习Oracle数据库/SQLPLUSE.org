@@ -1,0 +1,461 @@
+
+* SQLPLUS介绍
+SQLPLUS是ORACLE公司开发的很简洁的管理工具，SQLPLUS是最好的，最核心的ORACLE管理工具。SQLPLUS简洁而高效，舍弃浮华，反璞归真。使用sqlplus,进入sqlplus并进行简单的操作目的是熟悉oracle的小工具sqlplus的使用。
+
+** 1、如何进入SQLPLUS界面
+
+进入DOS,然后键入如下命令
+C:\>sqlplus /nolog
+进入字符界面
+C:\>sqlplusw /nolog
+进入windows界面，windows平台特有的。
+/nolog是不登录的意思。只进入SQLPLUS程序提示界面。
+等待你输入命令。
+
+** 2、SQLPLUS的基本操作
+#+BEGIN_SRC sql
+Sql>connect / as sysdba
+连接到本地的最高帐号
+Sql>help index
+Enter Help [topic] for help.
+Sql>show all
+显示当前SQLPLUS的环境设置
+Sql>show user
+显示当前所登录的用户信息
+SQL> clear screen
+有的时候sqlplus会显示的有点乱,光标不在最后,请清屏.
+#+END_SRC
+** 3、一些常用命令
+由于我使用docker虚拟机做的所以无法访问mac的目录 而是在$oracle_path默认目录下的
+#+BEGIN_SRC shell
+[oracle@47b8068d4c5d ~]$ pwd
+/home/oracle
+#+END_SRC
+*** Spool
+命令是将屏幕的显示输入到文本文件内，以便查看，类似屏幕转存。
+#+BEGIN_SRC sql
+SPOOL ./1.TXT
+SELECT * FROM EMP;
+SPOOL OFF
+#+END_SRC
+以上三行就将SPOOL和SPOOL OFF所夹的屏幕输出到c:\1.txt文件中。
+#+BEGIN_SRC sql
+Spool ./1.txt append
+Select * from dept;
+Spool off
+#+END_SRC
+加APPEND命令的含义是续写1.txt,如果不加，将会把原来的c:\1.txt覆盖，这是10G的新特性，
+以前的数据库版本不能续写，只能指定新的文件名称。
+
+*** Run
+    运行SQLPLUS缓冲区内的SQL语句，可以缩写为r
+*** /
+    与run命令相同，运行SQLPLUS缓冲区内的SQL语句
+*** @脚本
+    @%oracle_home%\rdbms\admin\utlxplan.sql
+ 该句话的含义为运行指定的脚本。
+   @@为运行相对路径下的脚本，一般是在大脚本调用小脚本的时候使用。
+*** Save
+ 将当前SQLPLUS缓冲区内的SQL语句保存到指定的文件中
+ 如save c:\2.txt
+*** Get
+    将文件中的SQL语句调入到SQLPLUS缓冲区内。
+ 如 get c:\2.txt
+*** Edit
+    编辑当前SQLPLUS缓冲区内的SQL语句，如ed
+*** 注释
+ --是注释当前行
+ /* */是注释多行
+ PS:注意书写语句的时候要加上分号 ” ; ”
+
+*** 把SQL存到文件 save c:\1.txt
+spool是屏幕一段,这是存储sql
+*** Ed c:\1.txt编辑SQL语句
+*** @c:\1.txt运行SQL语句
+*** Desc emp描述EMP结构
+*** Select * from tab 查看该用户下大所有对象
+*** Show user显示当前用户
+
+* 数据库
+** 数据库基本概念
+~数据 描述事务的符号记录~
+   但是,数据的表现形式不够,需要数据的含义(语义)来支撑说明数据
+~数据库 计算机内,有组织,可共享的数据集合~
+   低冗余度,高独立性,易扩展性
+~数据库管理系统 科学组织和存储数据,高效获取维护数据~
+   功能:定义数据,组织存储管理数据,数据操纵,数据库的事务管理和运行管理,数据库建立和维护,其他功能
+~数据库系统 数据库,数据库管理系统,应用程序,数据库管理员组成的系统~
+   特点:整体数据的结构化,共享姓高,冗余度低,易扩充,数据独立性高,数据有数据库管理系统统一管理和控制
+
+** 数据模型 对现实数据特征的一种抽象
+   数据库系统基于数据模型(核心,基础)
+   现实需求 → 概念模型 → 数据库管理系统支持的数据模型
+*** 分类 
+**** 概念模型 
+    基于用户的观点进行的建模
+***** 基本概念
+      1. 实体(类似object对象)
+      2. 属性(特征)
+      3. 码key(唯一标识实体的属性集)
+      4. 实体型(实体名及属性名的集合)
+      5. 实体集(同一个实体型的集合)
+      6. 实体之间的联系(一对多,多对多,一对一)
+***** 实体联系图 ER图
+**** 逻辑模型和物理模型
+    逻辑模型:计算机系统的观点进行建模,用于数据库管理系统的实现
+    物理模型:对数据底层的抽象,描述在系统内部的表述方式和存取方法,用于数据库管理系统任务的实现
+*** 数据模型  
+**** 数据结构 
+     对象性质以及对象关系
+**** 数据操作 
+     更新 查询
+**** 完整性约束条件
+     关系模型 -- 实体完整性,参照完整性
+*** 关系模型 1属性970 IBM San Jose - E.F.Codd
+**** 关系/关系模式/元祖(一行属性)/属性/码/域(有相同数据类型的值的集合)/分量
+**** 规范化
+     关系的每个分量不可分
+**** 优缺
+     概念单一,数据结构简单清晰
+     存取路径透明,具有更高的数据独立性高性/安全密保/简化程序员的工作和数据库开发建立的工作
+     
+     查询效率旺旺不如格式化数据模型
+** 数据库系统结构
+模式(型type, 值value)
+
+
+* 一.数据控制语句 (DML) 部分
+** 1.INSERT (往数据表里插入记录的语句)
+#+BEGIN_SRC sql
+INSERT INTO 表名(字段名1, 字段名2, ……) VALUES ( 值1, 值2, ……);
+INSERT INTO 表名(字段名1, 字段名2, ……) SELECT (字段名1, 字段名2, ……) FROM 另外的表名;
+#+END_SRC
+字符串类型的字段值必须用单引号括起来, 例如: ’GOOD DAY’
+如果字段值里包含单引号’ 需要进行字符串转换, 我们把它替换成两个单引号''.
+字符串类型的字段值超过定义的长度会出错, 最好在插入前进行长度校验.
+
+日期字段的字段值可以用当前数据库的系统时间SYSDATE, 精确到秒
+或者用字符串转换成日期型函数TO_DATE(‘2001-08-01’,’YYYY-MM-DD’)
+TO_DATE()还有很多种日期格式, 可以参看ORACLE DOC.
+年-月-日 小时:分钟:秒 的格式YYYY-MM-DD HH24:MI:SS
+
+INSERT时最大可操作的字符串长度小于等于4000个单字节, 如果要插入更长的字符串, 请考虑字段用CLOB类型,
+方法借用ORACLE里自带的DBMS_LOB程序包.
+
+INSERT时如果要用到从1开始自动增长的序列号, 应该先建立一个序列号
+CREATE SEQUENCE 序列号的名称 (最好是表名+序列号标记) INCREMENT BY 1 START WITH 1
+MAXVALUE 99999 CYCLE NOCACHE;
+其中最大的值按字段的长度来定, 如果定义的自动增长的序列号 NUMBER(6) , 最大值为999999
+INSERT 语句插入这个字段值为: 序列号的名称.NEXTVAL
+
+2.DELETE (删除数据表里记录的语句)
+
+DELETE FROM表名 WHERE 条件;
+
+注意：删除记录并不能释放ORACLE里被占用的数据块表空间. 它只把那些被删除的数据块标成unused.
+
+如果确实要删除一个大表里的全部记录, 可以用 TRUNCATE 命令, 它可以释放占用的数据块表空间
+TRUNCATE TABLE 表名;
+此操作不可回退.
+
+3.UPDATE (修改数据表里记录的语句)
+
+UPDATE表名 SET 字段名1=值1, 字段名2=值2, …… WHERE 条件;
+
+如果修改的值N没有赋值或定义时, 将把原来的记录内容清为NULL, 最好在修改前进行非空校验;
+值N超过定义的长度会出错, 最好在插入前进行长度校验..
+
+注意事项:
+A. 以上SQL语句对表都加上了行级锁,
+确认完成后, 必须加上事物处理结束的命令 COMMIT 才能正式生效,
+否则改变不一定写入数据库里.
+如果想撤回这些操作, 可以用命令 ROLLBACK 复原.
+
+B. 在运行INSERT, DELETE 和 UPDATE 语句前最好估算一下可能操作的记录范围,
+应该把它限定在较小 (一万条记录) 范围内,. 否则ORACLE处理这个事物用到很大的回退段.
+程序响应慢甚至失去响应. 如果记录数上十万以上这些操作, 可以把这些SQL语句分段分次完成,
+其间加上COMMIT 确认事物处理.
+二.数据定义 (DDL) 部分
+1.CREATE (创建表, 索引, 视图, 同义词, 过程, 函数, 数据库链接等)
+
+ORACLE常用的字段类型有
+CHAR 固定长度的字符串
+VARCHAR2 可变长度的字符串
+NUMBER(M,N) 数字型M是位数总长度, N是小数的长度
+DATE 日期类型
+
+创建表时要把较小的不为空的字段放在前面, 可能为空的字段放在后面
+
+创建表时可以用中文的字段名, 但最好还是用英文的字段名
+
+创建表时可以给字段加上默认值, 例如 DEFAULT SYSDATE
+这样每次插入和修改时, 不用程序操作这个字段都能得到动作的时间
+
+创建表时可以给字段加上约束条件
+例如 不允许重复 UNIQUE, 关键字 PRIMARY KEY
+
+2.ALTER (改变表, 索引, 视图等)
+
+改变表的名称
+ALTER TABLE 表名1 TO 表名2;
+
+在表的后面增加一个字段
+ALTER TABLE表名 ADD 字段名 字段名描述;
+
+修改表里字段的定义描述
+ALTER TABLE表名 MODIFY字段名 字段名描述;
+
+给表里的字段加上约束条件
+ALTER TABLE 表名 ADD CONSTRAINT 约束名 PRIMARY KEY (字段名);
+ALTER TABLE 表名 ADD CONSTRAINT 约束名 UNIQUE (字段名);
+
+把表放在或取出数据库的内存区
+ALTER TABLE 表名 CACHE;
+ALTER TABLE 表名 NOCACHE;
+
+3.DROP (删除表, 索引, 视图, 同义词, 过程, 函数, 数据库链接等)
+
+删除表和它所有的约束条件
+DROP TABLE 表名 CASCADE CONSTRAINTS;
+
+4.TRUNCATE (清空表里的所有记录, 保留表的结构)
+
+TRUNCATE 表名;
+* SELECT语句
+** connect(conn)
+   普通用户连接conn scott/tiger
+   超级管理员连接 conn sys
+       管理员密码注意加上 as sysdba
+   Disconnect 断开连接
+
+** 书写SQL语句的原则
+- 大小写不敏感，但单引和双引内的大小写是敏感的。切记！
+- 关键字不能缩写
+- 可以分行书写，但关键字不能被跨行书写，单引内也不要跨行书写。
+- 一般每个子句是一行
+- 可以排版来增加可读性
+- 字符串用单引
+- 列的别名用双引
+*** SQL语句的书写顺序
+#+BEGIN_SRC sql
+select * |[destict 列名[as] 别名...]
+from 表名 [别名], 表名[别名]...
+[where 子句]
+[orderby 子句]
+#+END_SRC
+*** SQL语句的执行顺序
+ FROM → WHERE → SELECT → ORDERby
+
+** SELECT语句
+*** 1、简单的Select语句
+#+BEGIN_SRC sql
+Select * from table 
+-- 不指定查询的字段
+Select attr1,attr2 from table
+--  指定查询某些字段
+Select attr1,attr2 from table where attr1=xxx
+-- 查询符合条件的指定字段
+#+END_SRC
+
+*** 2、使用算术表达式 + - / *
+表达式的运算是有优先级的,和程序中的一样,先乘除后加减,括号强制优先级.
++ - * /
+先乘除，后加减，括号强制优先级
+#+BEGIN_SRC sql
+Select ename,12*sal+300 from emp;
+Select ename,12*(sal+300) from emp;
+#+END_SRC
+
+*** 3、连接运算符 ||
+*** 4、使用字段别名 as
+    ~别名的使用原则~
+    1。区分同名列的名称
+    2。非法的表达式合法化
+    3。按照你的意愿显示列的名称
+    4。特殊的别名要双引
+    5。直接写列的后面
+    6。使用as增加可读性
+*** 5、空值 is null
+    Null值不等于0，也不等于空格。
+    Null值是未赋值的值，不入索引。
+    =NULL是双刃剑，使用好了提高性能，你对它不了解，往往是错误的根源，切记=
+    ~查询NULL值~
+    因为null不等于null,所以没有行被选出。未知不等于未知,无穷不等于无穷.
+*** 6、去除重复行 distinct
+    SELECT 语句显示重复的行。用DISTINCT语法来去掉重复的行。
+
+如果我们想去掉重复的行，我们需要distinct关键字。
+
+在ORACLE数据库的10G前版本，该语句需要排序才能去掉重复的行，而在10G中数据库并不需要
+
+排序，而是使用HASH算法来去掉重复的行，由于避免了排序，从而极大的提高了SQL语句的效率，
+
+因为10G的SQL内核改写了。效率更加的高。因为没有排序，所以输出也是无序的。
+
+ 
+
+7、查询结果排序 order by asc(desc)
+
+Where和order by 子句
+
+语法
+
+SELECT *|{[DISTINCT] column|expression [alias],...}
+
+FROM table
+
+[WHERE condition(s)]
+
+[order by column|expression| alias ];
+
+Where 一定要放在FROM 子句的后面。
+
+显示表的部分行和部分列，使用where子句过滤出想要的行
+
+Select deptno,ename from emp Where deptno=10;
+
+ 
+
+Order by 放在最后，用来排序显示结果
+
+不指明都是二进制排序，如果你想按照拼音，部首，笔画，法语等特殊的排序模式，请设定排序的环境
+
+变量，关于国家语言的支持问题我们再DBA体系结构中描述。
+
+默认是升序asc
+
+降序要指定desc
+
+8、比较运算符 > < (!= or <>) between and
+
+ 
+
+ And运算
+
+Select ename,deptno,sal From emp Where deptno=30 and sal>1200;
+
+ENAME DEPTNO SAL
+
+---------- ------ ----------
+
+ALLEN 30 1600
+
+WARD 30 1250
+
+MARTIN 30 1250
+
+BLAKE 30 2850
+
+TURNER 30 1500
+
+两个条件的交集，必须同时满足。
+
+in操作 not in
+
+含上下界
+
+In操作，穷举，据说穷举不能超过1000个值，我没有去验证。一般我们也不会穷举到1000个值，如
+
+果到1000请改写你的SQL。
+
+Select deptno,ename,sal from emp Where deptno in(10,20);
+
+9、模糊查询 like
+
+% 表示零或多个字符
+
+_ 表示一个字符
+
+对于特殊符号可使用ESCAPE 标识符来查找
+
+Like运算
+
+_ 通配一个，仅匹配一个字符，
+
+% 通配没有或多个字符
+
+10、逻辑运算符 or and not
+
+OR运算
+
+Select ename,deptno,sal From emp Where deptno=30 or sal>1200;
+
+ENAME DEPTNO SAL
+
+---------- ------ ----------
+
+ALLEN 30 1600
+
+WARD 30 1250
+
+JONES 20 2975
+
+MARTIN 30 1250
+
+BLAKE 30 2850
+
+CLARK 10 2450
+
+KING 10 5000
+
+TURNER 30 1500
+
+JAMES 30 950
+
+FORD 20 3000
+
+MILLER 10 1300
+
+两个条件的并集，满足一个就可以。
+
+ not运算
+
+Select ename,deptno,sal From emp Where ename not like 'T%';
+
+ENAME DEPTNO SAL
+
+---------- ------ ----------
+
+SMITH 20 800
+
+ALLEN 30 1600
+
+WARD 30 1250
+
+JONES 20 2975
+
+MARTIN 30 1250
+
+BLAKE 30 2850
+
+CLARK 10 2450
+
+KING 10 5000
+
+JAMES 30 950
+
+FORD 20 3000
+
+MILLER 10 1300
+
+补集，不是T打头的员工。
+
+ 优先级
+
+1。算术运算
+
+2。连接运算
+
+3。关系运算
+
+4。 IS [NOT] NULL, LIKE, [NOT] IN
+
+5。Between
+
+6.not
+
+7.and
+
+8.or
+
+括号强制优先级
