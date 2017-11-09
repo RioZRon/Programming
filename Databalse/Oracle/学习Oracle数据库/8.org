@@ -1,0 +1,305 @@
+* 对表中数据的操作
+** 事务处理
+ 事务:最小的工作单元
+
+ ACID 原则
+ A 原子性 atomicity 
+ C 一致性 Consistency
+ I 隔离性 Isolation
+ D 持久性 Durability 对数据库的影响应该是持久的
+
+*** 事务控制
+**** 隐式控制
+     隐式提交:当下列任何一种情况发生的时候
+       1. 执行DDL/DCL语句
+       2. 从SQLPLUS正常退出的时候(Exit quet)
+   
+     隐式回滚 
+       1. 从SQLPLUSE强制退出
+       2. 断开连接
+       3. 系统崩溃 
+**** 显示控制
+ #+BEGIN_SRC sql
+ Commit; 
+ --将缓冲区的递交到数据库 
+ Rollback;
+ --把缓冲区回滚到上一次递交的状态
+ #+END_SRC
+
+*** 开始 
+ 开始于上一个事务结束后执行的第一个DML语句
+ 结束于...
+
+
+ 事务的自动提交
+
+ 执行Commit或者Rollback前的数据状态是可以被回复的
+ 就像是Git
+
+** 增删改 (DML)
+*** 插入:
+ #+BEGIN_SRC sql
+ INSERT INTO dept Values(55, '电信', '青岛');
+ INSERT INTO dept(deptno, dname, loc) Values(55, '电信', '青岛');
+ INSERT INTO dept(deptno, loc) Values(55,'青岛')
+ --插入时间
+ INSERT INTO emp(empno, hiredate) Values(1006, '08-11月-2017');
+ INSERT INTO emp(empno, hiredate) Values(1007, to_date('2017-11-26','yyyy-mm-dd');
+ --插入空值
+ INSERT INTO dept(deptno,dname,loc) Values(58, NULL, NULL)
+ INSERT INTO dept(deptno,dname,loc) Values(59,'','') --使用空串表示NULL
+ INSERT INTO dept(deptno) Values (60);
+ --插入多行数据
+ CREATE TABLE mydept AS SELECT * FROM dept WHERE 0=1;
+ INSERT INTO dept SELECT * FROM dept;    --可以直接加入子查询
+ #+END_SRC
+*** 修改: 
+ #+BEGIN_SRC sql
+ UPDATE mydept SET dname = '财务部' WHERE deptno = 33;
+ UPDATE mydept SET dname = '培训部',loc = '黄岛' WHERE deptno = 58;
+ UPDATE emp SET hiredate = to_date('2007-1-1','yyyy-mm-dd') WHERE empno = 1004;
+ --修改子查询
+ CREATE TABLE myemp AS SELECT * FROM emp;
+ UPDATE myemp SET sal = sal+(SELECT AVG(sal) FROM emp);
+ --相关子查询
+ UPDATE myemp m SET sal = sal+(SELECT AVG(sal) FROM emp WHERE m.deptno = deptno);
+ --修改需要相连的表:
+ UPDATE (SELECT * FROM emp_back e, dept d WHERE e.deptno = d.deptno(+) )SET sal = sal + 500 WHERE  (loc = 'NEW YORK' or loc = 'CHICAGO');
+ #+END_SRC
+*** 删除:
+ #+BEGIN_SRC sql
+ DELETE FROM myemp WHERE empno = 33;
+ --注意级联删除
+ --删除所有发生过工作调动的员工
+ DELETE FROM myemp WHERE empno IN(SELECT empno FROM emp_jobhistroy);
+ --删除与SMITH在统一部门的员工
+ DELETE FROM myemp WHERE deptno = (SELECT deptno FROM myemp WHERE ename='SMITH');
+
+ --删除相关子查询
+ CREATE TABLE myemp AS SELECT * FROM emp;
+ DELETE FROM myemp e WHERE 0 < (SELECT count(*) FROM emp_jobhistroy WHERE e.empno=empno);
+ #+END_SRC
+*** 合并:
+ 根据指定条件要么更新要么插入
+ #+BEGIN_SRC sql
+ --如果存在做更新操作 如果没有就做插入操作 
+ MERGE INTO mydept m
+ USING dept d
+ ON(depno)
+ WHEN MATCHED THEN
+ UPDATE SET
+ m.dname = 'bb', m.loc='bb' WHERE m.deptno=56
+ WHEN NOT MATCHED THEN
+ INSERT(m.deptno,m.dname,m.loc)
+ VALUE(d.deptno,d.dname,d.loc)
+ #+END_SRC
+ 优点:
+ - 避免独立的数据更新
+ - 提高效率
+ - 在数据仓库的应用中常用
+*** rowid(伪列)
+ 是系统自动生成的 表示该行的物理地址
+ 可以作为查询的条件(可以做物理查询)
+**** 结构
+ 数据对象编号(6)+相关的文件编号(3)+块编号(6)+行编号(3)
+ 
+* 表的操作
+  DDL 语句不能被恢复
+** 表的类型 
+   用户表 用户创建和维护的表
+   数据字典表(系统建立)
+   user_tables (用户所建立的表的维护表)
+
+** 创建表
+*** oracle里面的表名
+    [字母开始,比JAVA多一个#]
+    [同一个用户的表名不能重复]
+    [名字不能是Oracle的保留字 ]
+    [大小写不敏感]
+*** 创建表
+#+BEGIN_SRC sql
+create table 表名(
+列名 数据类型[属性特征] DEFAULT 默认值,
+列名 数据类型[属性特征],..
+);
+
+create table 表名 as 子查询;
+#+END_SRC
+*** 数据类型
+    字符串类型、数字类型、日期类型、LOB类型、LONG RAW& RAW类型、ROWID & UROWID类型。
+**** 字符串类型
+***** CHAR类型 CHAR(size [BYTE | CHAR]) (1~4000)
+      CHAR类型，定长字符串，会用空格填充来达到其最大长度。非NULL的CHAR（12）总是包含12字节信息。CHAR字段最多可以存储2,000字节的信息。如果创建表时，不指定CHAR长度，则默认为1。另外你可以指定它存储字节或字符，例如 CHAR(12 BYTYE) CHAR(12 CHAR).一般来说默认是存储字节
+***** VARCHAR类型
+      不要使用VARCHAR数据类型。使用VARCHAR2数据类型。虽然VARCHAR数据类型目前是VARCHAR2的同义词，VARCHAR数据类型将计划被重新定义为一个单独的数据类型用于可变长度的字符串相比，具有不同的比较语义。
+***** VARCHAR2类型
+      变长字符串，与CHAR类型不同，它不会使用空格填充至最大长度。VARCHAR2最多可以存储4,000字节的信息。
+***** NCHAR类型
+      这是一个包含UNICODE格式数据的定长字符串。NCHAR字段最多可以存储2,000字节的信息。它的最大长度取决于国家字符集。另外查询时，如果字段是NCHAR类型，则需要如下书写
+ #+BEGIN_SRC sql
+ SELECT translated_description FROM product_descriptions
+ WHERE translated_name = N'LCD Monitor 11/PM';
+ #+END_SRC
+***** NVARCHAR2类型
+      这是一个包含UNICODE格式数据的变长字符串。 NVARCHAR2最多可以存储4,000字节的信息。
+**** 数字类型 
+***** NUMBER类型
+      NUMBER(P,S)是最常见的数字类型，可以存放数据范围为10^130~10^126（不包含此值)，需要1~22字节(BYTE)不等的存储空间。
+      P 是Precison的英文缩写，即精度缩写，表示有效数字的位数，最多不能超过38个有效数字
+      S是Scale的英文缩写，可以使用的范围为-84~127。Scale为正数时，表示从小数点到最低有效数字的位数，它为负数时，表示从最大有效数字到小数点的位数
+***** INTEGER类型
+      INTEGER是NUMBER的子类型，它等同于NUMBER（38,0），用来存储整数。若插入、更新的数值有小数，则会被四舍五入。
+      例如：
+#+BEGIN_SRC sql
+ CREATE TABLE TEST( ID INTEGER)
+#+END_SRC
+***** BINARY_FLOAT
+      BINARY_FLOAT 是 32 位、 单精度浮点数字数据类型。可以支持至少6位精度,每个 BINARY_FLOAT 的值需要 5 个字节，包括长度字节。
+***** BINARY_DOUBLE
+      BINARY_DOUBLE 是为 64 位，双精度浮点数字数据类型。每个 BINARY_DOUBLE 的值需要 9 个字节，包括长度字节。
+      在数字的列中，浮点数有小数精度。在 BINARY_FLOAT 或 BINARY_DOUBLE 的列中，浮点数有二进制的精度。二进制浮点数支持的特殊值无穷大和 NaN （不是数字）。
+***** FLOAT类型
+      FLOAT类型也是NUMBER的子类型。
+      Float(n),数 n 指示位的精度，可以存储的值的数目。N 值的范围可以从 1 到 126。若要从二进制转换为十进制的精度，请将 n 乘以 0.30103。要从十进制转换为二进制的精度，请用 3.32193 乘小数精度。126 位二进制精度的最大值是大约相当于 38 位小数精度。
+     
+**** 日期类型
+     日期类型用于存储日期数据，但是并不是使用一般的格式（2012-08-08）直接存储到数据库的。
+***** DATE类型
+      DATE是最常用的数据类型，日期数据类型存储日期和时间信息。虽然可以用字符或数字类型表示日期和时间信息，但是日期数据类型具有特殊关联的属性。为每个日期值，Oracle 存储以下信息： 世纪、 年、 月、 日期、 小时、 分钟和秒。一般占用7个字节的存储空间。
+***** TIMESTAMP类型
+      这是一个7字节或12字节的定宽日期/时间数据类型。它与DATE数据类型不同，因为TIMESTAMP可以包含小数秒，带小数秒的TIMESTAMP在小数点右边最多可以保留9位
+***** TIMESTAMP WITH TIME ZONE类型
+      这是TIMESTAMP类型的变种，它包含了时区偏移量的值
+***** TIMESTAMP WITH LOCAL TIME ZONE类型
+***** INTERVAL YEAR TO MOTH
+***** INTERVAL DAY TO SECOND
+**** LOB类型
+     内置的LOB数据类型包括BLOB、CLOB、NCLOB、BFILE（外部存储）的大型化和非结构化数据，如文本、图像、视屏、空间数据存储。BLOB、CLOB、NCLOB类型
+***** 4.1 CLOB 数据类型
+      它存储单字节和多字节字符数据。支持固定宽度和可变宽度的字符集。CLOB对象可以存储最多 (4 gigabytes-1) * (database block size) 大小的字符
+***** NCLOB 数据类型
+      它存储UNICODE类型的数据，支持固定宽度和可变宽度的字符集，NCLOB对象可以存储最多(4 gigabytes-1) * (database block size)大小的文本数据。
+***** BLOB 数据类型
+      它存储非结构化的二进制数据大对象，它可以被认为是没有字符集语义的比特流，一般是图像、声音、视频等文件。BLOB对象最多存储(4 gigabytes-1) * (database block size)的二进制数据。
+***** BFILE 数据类型
+      二进制文件，存储在数据库外的系统文件，只读的，数据库会将该文件当二进制文件处理
+**** RAW & LONG RAW类型
+***** LONG类型
+      它存储变长字符串，最多达2G的字符数据（2GB是指2千兆字节， 而不是2千兆字符），与VARCHAR2 或CHAR 类型一样，存储在LONG 类型中的文本要进行字符集转换。ORACLE建议开发中使用CLOB替代LONG类型。支持LONG 列只是为了保证向后兼容性。CLOB类型比LONG类型的限制要少得多。 LONG类型的限制如下：
+      1.一个表中只有一列可以为LONG型。(Why?有些不明白)
+      2.LONG列不能定义为主键或唯一约束，
+      3.不能建立索引
+      4.LONG数据不能指定正则表达式。
+      5.函数或存储过程不能接受LONG数据类型的参数。
+      6.LONG列不能出现在WHERE子句或完整性约束（除了可能会出现NULL和NOT NULL约束）
+      #+BEGIN_QUOTE
+      官方文档描叙如下：
+      The use of LONG values is subject to these restrictions:
+      1.A table can contain only one LONG column.
+      2. You cannot create an object type with a LONG attribute.
+      3. LONG columns cannot appear in WHERE clauses or in integrity constraints (except that they can appear in NULL and NOT NULL constraints).
+      4. LONG columns cannot be indexed.
+      5. LONG data cannot be specified in regular expressions.
+      6. A stored function cannot return a LONG value.
+      7. You can declare a variable or argument of a PL/SQL program unit using the LONG datatype. However, you cannot then call the program unit from SQL.
+      Within a single SQL statement, all LONG columns, updated tables, and locked tables must be located on the same database.
+      8. LONG and LONG RAW columns cannot be used in distributed SQL statements and cannot be replicated.
+      If a table has both LONG and LOB columns, then you cannot bind more than 4000 bytes of data to both the LONG and LOB columns in the same SQL statement. However, you can bind more than 4000 bytes of data to either the LONG or the LOB column.
+      In addition, LONG columns cannot appear in these parts of SQL statements:
+      GROUP BY clauses, ORDER BY clauses, or CONNECT BY clauses or with the DISTINCT operator in SELECT statements
+      The UNIQUE operator of a SELECT statement
+      The column list of a CREATE CLUSTER statement
+      The CLUSTER clause of a CREATE MATERIALIZED VIEW statement
+      SQL built-in functions, expressions, or conditions
+      SELECT lists of queries containing GROUP BY clauses
+      SELECT lists of subqueries or queries combined by the UNION, INTERSECT, or MINUS set operators
+      SELECT lists of CREATE TABLE ... AS SELECT statements
+      ALTER TABLE ... MOVE statements
+      SELECT lists in subqueries in INSERT statements
+#+END_QUOTE 
+***** LONG RAW 类型，能存储2GB 的原始二进制数据（不用进行字符集转换的数据）
+***** RAW类型
+      用于存储二进制或字符类型数据，变长二进制数据类型，这说明采用这种数据类型存储的数据不会发生字符集转换。这种类型最多可以存储2,000字节的信息
+
+** 修改表
+*** 修改列
+#+BEGIN_SRC sql
+alter 表名 add
+alter 表名 modify
+alter 表名 drop
+#+END_SRC
+*** 添加列
+ #+BEGIN_SRC sql
+ alter Student add (address varchar2(10));
+ #+END_SRC
+ 不能指定列的位置,必须是最后一
+*** 修改列
+ 如果要修改数据类型,那么已有行该列数据必须为空
+ #+BEGIN_SRC sql
+ ALTER TABLE student modify (address NUMBER(10));
+ #+END_SRC
+ 如果修改长度是往大的改,没有限制,但是如果往小改如果是数值型已有行数据必须为空,如果是字符型改小,该行该列数据必须为空
+ #+BEGIN_SRC sql
+ ALTER Table student modify (address VARCHER2(25));
+ #+END_SRC
+ 如果只是修改默认值,只会对之后新家的影响
+*** 删除列
+#+BEGIN_SRC sql
+ALTER TABLE student DROP (address);     -- 可以删除多列
+ALTER TABLE student DROP (birthDay, sname);
+ALTER TABLE student DROP COLUMN address;
+#+END_SRC
+**** 特点
+     没有办法删除所有的列,至少保留一列
+     列被删除无法恢复
+     被外键引用的列不能被删除
+** 删除表
+#+BEGIN_SRC sql
+DROP TABLE student;
+#+END_SRC
+** Rename
+#+BEGIN_SRC sql
+RENAME my to mytable;
+#+END_SRC
+** 截断表
+#+BEGIN_SRC sql
+TRUNCATE table 表名;
+#+END_SRC
+截断和DELETE
+truncate和DELETE区别:
+1. DELETE是DML语句,数据可以恢复,truncate是DDL语句无法回复
+2. DELETE不能释放存储空间,因为还没有CCOMMIT
+3. DELETE可以有条件删除,而TRUNCATE只能全部删除
+4. delete数据是一条条删除,truncate是一页页删除
+
+
+约数 
+防止无效数据输入到表中
+表级和列级约束
+表级约数: CONSTRAINT 约束名 约束类型(约数列)
+表名_字段_约束名
+主键约束:必须是唯一的,非空的,一张表只能有一个主键,但是一个主键可以用多个列组成(联合主键)
+#+BEGIN_SRC sql
+create table student(
+SID integer primary key, --列级约束
+sname varchar2
+);
+
+create table student2(
+sid integer constraint student_sid_pk PRIMARY KEY, --列级约束 自定义主键名
+sname varchar2
+);
+
+create table student3(
+sid integer,
+sname varchar2,
+constriant student_sid_pk PRIMARY KEY(SID)	--表级约束
+);
+
+create table student4(
+sid integer,
+sname varchar2,
+constriant student_sid_pk PRIMARY KEY(SID,sname)	--表级约束
+);
+#+END_SRC
+唯一约束:
